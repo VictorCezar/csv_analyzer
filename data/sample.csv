@@ -1,0 +1,9 @@
+id,name,age,department,salary,join_date
+1,Alice,30,HR,60000,2022-01-15
+2,Bob,35,Engineering,90000,2021-06-20
+3,Charlie,28,Engineering,80000,2023-02-10
+4,Diana,42,Marketing,75000,2019-11-05
+5,Ethan,31,HR,62000,2022-08-12
+6,Fiona,29,Sales,55000,2023-05-01
+7,George,45,Engineering,110000,2018-03-15
+8,Hannah,38,Marketing,78000,2020-07-22
