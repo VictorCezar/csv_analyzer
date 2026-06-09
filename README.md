@@ -94,7 +94,22 @@ Pass `--auto-approve` or set `AUTO_APPROVE=true` in the environment to skip manu
 python main.py --csv data/sample.csv --query "What is the average salary of employees in Engineering?" --auto-approve
 ```
 
+### Web Application Interface
+Alternatively, you can run the interactive web application, which features a graphical timeline of LangGraph node executions and a user-friendly Human-in-the-Loop approval dashboard:
+
+1. **Start the Web Server**:
+   ```bash
+   python3 -m uvicorn app:app --reload --port 8000
+   ```
+2. **Access the Application**: Open [http://localhost:8000](http://localhost:8000) in your web browser.
+3. **Web Features**:
+   - **File Upload Zone**: Drag-and-drop your CSV file directly to upload.
+   - **Tabular Data Preview**: View the first 10 rows and dataset dimensions directly in the UI.
+   - **Workflow Tracker**: Watch the active node light up as the agent works (CSV Parsing -> Query Translation -> Data Extraction -> Draft Answer -> Validation).
+   - **Interactive Validation Dashboard**: When paused at the validation node, inspect the generated Pandas code, raw data subset, and drafted response. Approve it or submit feedback to trigger a refinement cycle.
+
 ---
+
 
 ## 5. Evaluation with Ragas
 
