@@ -1,5 +1,8 @@
 import os
 import shutil
+import math
+import pandas as pd
+import numpy as np
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +10,31 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
 from agent.graph import create_graph
+from agent.parser import CSVParser
+
+def sanitize_for_json(val: Any) -> Any:
+    """Recursively replaces NaN, Inf, -Inf, and pandas/numpy nulls with None."""
+    if isinstance(val, dict):
+        return {k: sanitize_for_json(v) for k, v in val.items()}
+    elif isinstance(val, list):
+        return [sanitize_for_json(x) for x in val]
+    elif isinstance(val, float):
+        if math.isnan(val) or math.isinf(val):
+            return None
+        return val
+    elif pd.isna(val):
+        return None
+    elif isinstance(val, np.integer):
+        return int(val)
+    elif isinstance(val, np.floating):
+        val_float = float(val)
+        if math.isnan(val_float) or math.isinf(val_float):
+            return None
+        return val_float
+    elif isinstance(val, np.ndarray):
+        return [sanitize_for_json(x) for x in val.tolist()]
+    return val
+
 
 # Setup directories
 DATA_DIR = "data"
@@ -54,8 +82,7 @@ async def upload_file(file: UploadFile = File(...)):
         
     # Parse file using pandas to verify it's clean and output details
     try:
-        import pandas as pd
-        df = pd.read_csv(file_path)
+        df = CSVParser.load_csv(file_path)
         preview = df.head(10).to_dict(orient="records")
         columns = list(df.columns)
         num_rows = len(df)
@@ -66,13 +93,13 @@ async def upload_file(file: UploadFile = File(...)):
             os.remove(file_path)
         raise HTTPException(status_code=400, detail=f"Invalid or corrupted CSV format: {str(e)}")
         
-    return {
+    return sanitize_for_json({
         "filename": file.filename,
         "columns": columns,
         "num_rows": num_rows,
         "num_columns": num_cols,
         "preview": preview
-    }
+    })
 
 @app.post("/api/query")
 async def start_query(request: QueryRequest):
@@ -88,6 +115,7 @@ async def start_query(request: QueryRequest):
         "csv_path": csv_path,
         "query": request.query,
         "approved": False,
+        "retry_count": 0,
     }
     
     try:
@@ -99,7 +127,7 @@ async def start_query(request: QueryRequest):
         is_paused = "human_validation" in state.next
         values = state.values
         
-        return {
+        return sanitize_for_json({
             "is_paused": is_paused,
             "next_node": list(state.next),
             "state": {
@@ -108,9 +136,10 @@ async def start_query(request: QueryRequest):
                 "response": values.get("response"),
                 "error": values.get("error"),
                 "feedback": values.get("feedback"),
-                "approved": values.get("approved")
+                "approved": values.get("approved"),
+                "retry_count": values.get("retry_count")
             }
-        }
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Execution error inside LangGraph workflow: {str(e)}")
 
@@ -143,7 +172,7 @@ async def validate_query(request: ValidationRequest):
         is_paused = "human_validation" in new_state.next
         values = new_state.values
         
-        return {
+        return sanitize_for_json({
             "is_paused": is_paused,
             "next_node": list(new_state.next),
             "state": {
@@ -152,9 +181,10 @@ async def validate_query(request: ValidationRequest):
                 "response": values.get("response"),
                 "error": values.get("error"),
                 "feedback": values.get("feedback"),
-                "approved": values.get("approved")
+                "approved": values.get("approved"),
+                "retry_count": values.get("retry_count")
             }
-        }
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to resume LangGraph workflow: {str(e)}")
 

@@ -13,3 +13,5 @@ class AgentState(TypedDict):
     approved: bool
     feedback: Optional[str]
     error: Optional[str]
+    retry_count: Optional[int]
+

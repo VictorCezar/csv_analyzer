@@ -47,3 +47,18 @@ def test_format_summary_for_llm(sample_csv_path):
     assert "name" in formatted
     assert "age" in formatted
     assert "salary" in formatted
+
+def test_load_csv_semicolon(tmp_path):
+    csv_file = tmp_path / "test_semicolon.csv"
+    data = (
+        "name;age;salary\n"
+        "Alice;30;60000\n"
+        "Bob;35;90000\n"
+        "Charlie;28;80000\n"
+    )
+    csv_file.write_text(data)
+    df = CSVParser.load_csv(str(csv_file))
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 3
+    assert list(df.columns) == ["name", "age", "salary"]
+

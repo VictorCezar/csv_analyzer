@@ -18,8 +18,12 @@ def route_after_parse(state: AgentState) -> str:
 
 def route_after_extract(state: AgentState) -> str:
     """Se o código rodar com sucesso, redige a resposta. 
-       Se o código falhar, manda direto para a tela de Validação Humana para exibir o erro."""
+       Se o código falhar, tenta corrigir automaticamente até 3 vezes.
+       Se exceder as tentativas, manda para a tela de Validação Humana."""
     if state.get("error"):
+        retry_count = state.get("retry_count", 0)
+        if retry_count < 3:
+            return "understand_query"
         return "human_validation"
     return "draft_response"
 

@@ -25,7 +25,9 @@ def run_agent(csv_path: str, query: str, auto_approve: bool = False) -> Optional
         "csv_path": csv_path,
         "query": query,
         "approved": False,
+        "retry_count": 0,
     }
+
     
     print("\n" + "="*50)
     print("Starting LangGraph CSV Analysis Agent...")

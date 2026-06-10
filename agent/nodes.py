@@ -67,7 +67,12 @@ def understand_query_node(state: AgentState) -> Dict[str, Any]:
         "6. If the user's query is broad or descriptive (e.g., 'what is this CSV about?', 'summarize this CSV', 'explain this dataset', or in Portuguese 'do que se trata o csv', 'resumo do dataset'), you MUST write a python script that performs a comprehensive summary of the dataset. This should include shape/size, columns/datatypes, statistical description of numeric columns (`df.describe(include='all')`), distributions of key categorical columns, and missing value counts. Store this comprehensive info in a structured dictionary/string and assign it to `result`.\n"
         "7. If the query requires complex analytical processing (e.g., finding correlations, cross-tabulations, aggregations, trend analysis, top categories, or comparative metrics), write a script that calculates all relevant metrics (such as group aggregations, correlation matrices, temporal trends, value distributions) rather than just a simple select/filter. Return all gathered data in `result`.\n"
         "8. Ensure the script handles missing data (e.g., dropna or fillna if necessary) and uses safe type conversions to avoid pandas runtime errors.\n"
-        "9. CRITICAL FOR AGGREGATIONS & CORRELATIONS: When calling statistical/aggregation functions like `.mean()`, `.std()`, `.var()`, `.median()`, `.sum()`, or `.corr()`, Pandas will raise `ValueError: could not convert string to float` if there are string/object columns (such as 'Gender' with 'Female'/'Male', or 'Subscription Type' with 'Standard'). You MUST either: (a) select only numeric columns first using `df.select_dtypes(include='number')` or specifying a list of numeric columns (e.g., `df[['Age', 'Tenure']].mean()`), or (b) pass `numeric_only=True` to the aggregation function (e.g., `df.mean(numeric_only=True)` or `df.groupby('Churn').mean(numeric_only=True)`).\n\n"
+        "9. CRITICAL FOR AGGREGATIONS & CORRELATIONS: When calling statistical/aggregation functions like `.mean()`, `.std()`, `.var()`, `.median()`, `.sum()`, or `.corr()`, Pandas will raise `ValueError: could not convert string to float` if there are string/object columns (such as 'Gender' with 'Female'/'Male', or 'Subscription Type' with 'Standard'). You MUST either: (a) select only numeric columns first using `df.select_dtypes(include='number')` or specifying a list of numeric columns (e.g., `df[['Age', 'Tenure']].mean()`), or (b) pass `numeric_only=True` to the aggregation function (e.g., `df.mean(numeric_only=True)` or `df.groupby('Churn').mean(numeric_only=True)`).\n"
+        "10. CRITICAL FOR GROUPBY FILTERING: Do NOT filter a GroupBy object directly using boolean indexing (e.g., `df_grupo[df_grupo['col'] == 'val']` is completely INVALID and raises `KeyError: 'Column not found: False'`).\n"
+        "    - BAD/INVALID (raises KeyError): `df_grupo = df.groupby(['local', 'date']); media = df_grupo[df_grupo['promotion_type'] == 'Flash']['actual_price'].mean()`\n"
+        "    - GOOD/VALID (Filter DataFrame first): `df_promocao = df[df['promotion_type'] == 'Flash']; df_grupo = df_promocao.groupby(['local', 'date']); media = df_grupo['actual_price'].mean()`\n"
+        "    - GOOD/VALID (Include column in groupby keys): `df_grupo = df.groupby(['local', 'date', 'promotion_type']); media = df_grupo['actual_price'].mean()`\n"
+        "11. DO NOT GUESS OR MAKE UP CATEGORIVAL VALUES: Always check the unique values or sample values provided in the CSV Schema to see what actual values exist in the columns. For example, if analyzing promotions and the schema says `promotion_type` has unique values like `['Flash']`, use `'Flash'` (and handle NaN/nulls if needed) instead of guessing values like `'Com Promoção'` or `'Sem Promoção'`.\n\n"
         "EXAMPLES OF USAGE:\n"
         "# Example 1: General Dataset Summary (When asked what the CSV is about)\n"
         "info_summary = {\n"
@@ -143,7 +148,10 @@ def extract_data_node(state: AgentState) -> Dict[str, Any]:
             try:
                 exec_locals["result"] = eval(pandas_query, exec_globals, exec_locals)
             except Exception:
-                return {"error": "The Python script did not define a 'result' variable as instructed."}
+                return {
+                    "error": "The Python script did not define a 'result' variable as instructed.",
+                    "retry_count": state.get("retry_count", 0) + 1
+                }
             
         result = exec_locals["result"]
         
@@ -160,7 +168,10 @@ def extract_data_node(state: AgentState) -> Dict[str, Any]:
             "error": None
         }
     except Exception as e:
-        return {"error": f"{type(e).__name__}: {str(e)}"}
+        return {
+            "error": f"{type(e).__name__}: {str(e)}",
+            "retry_count": state.get("retry_count", 0) + 1
+        }
 
 def draft_response_node(state: AgentState) -> Dict[str, Any]:
     """
