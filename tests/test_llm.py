@@ -1,21 +1,19 @@
 import os
 from unittest.mock import patch
 from agent.llm import get_llm, get_embeddings
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_groq import ChatGroq
+from langchain_huggingface import HuggingFaceEmbeddings
 
 def test_get_llm_config():
-    """Test that get_llm instantiates ChatOllama with configured environment variables."""
-    with patch.dict(os.environ, {"OLLAMA_BASE_URL": "http://test-server:11434", "OLLAMA_MODEL": "test-model"}):
+    """Testa se o get_llm instancia o ChatGroq corretamente com a API Key."""
+    with patch.dict(os.environ, {"GROQ_API_KEY": "fake-key-for-test"}):
         llm = get_llm(temperature=0.5)
-        assert isinstance(llm, ChatOllama)
-        assert llm.base_url == "http://test-server:11434"
-        assert llm.model == "test-model"
+        assert isinstance(llm, ChatGroq)
+        assert llm.model_name == "llama-3.1-8b-instant"
         assert llm.temperature == 0.5
 
 def test_get_embeddings_config():
-    """Test that get_embeddings instantiates OllamaEmbeddings with configured environment variables."""
-    with patch.dict(os.environ, {"OLLAMA_BASE_URL": "http://test-server:11434", "OLLAMA_EMBEDDING_MODEL": "test-embed"}):
-        embeddings = get_embeddings()
-        assert isinstance(embeddings, OllamaEmbeddings)
-        assert embeddings.base_url == "http://test-server:11434"
-        assert embeddings.model == "test-embed"
+    """Testa se o get_embeddings instancia o HuggingFaceEmbeddings."""
+    embeddings = get_embeddings()
+    assert isinstance(embeddings, HuggingFaceEmbeddings)
+    assert embeddings.model_name == "all-MiniLM-L6-v2"

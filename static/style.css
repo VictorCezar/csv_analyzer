@@ -2,8 +2,10 @@
     --bg-primary: #0a0e14;
     --bg-secondary: rgba(18, 26, 38, 0.7);
     --bg-card: rgba(22, 33, 49, 0.4);
-    --accent-blue: #007aff;
-    --accent-blue-glow: rgba(0, 122, 255, 0.2);
+    /* Cor Roxa Solicitada */
+    --accent-blue: #4B0082; 
+    --accent-blue-glow: rgba(75, 0, 130, 0.3);
+    
     --accent-green: #30d158;
     --accent-green-hover: #34c759;
     --accent-red: #ff453a;
@@ -12,7 +14,7 @@
     --text-secondary: #8e8e93;
     --text-dimmed: #636366;
     --border-color: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(0, 122, 255, 0.4);
+    --border-hover: rgba(75, 0, 130, 0.4); /* Reflete o roxo no hover */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-heading: 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
@@ -105,9 +107,11 @@ body {
 
 /* Main Workspace */
 .workspace {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 32px;
+    max-width: 900px; /* Mantém o chat com uma largura agradável para leitura */
+    margin: 0 auto;   /* Centraliza na tela */
 }
 
 @media (max-width: 1024px) {
@@ -534,6 +538,23 @@ textarea:focus {
     overflow-x: auto;
 }
 
+.error-block {
+    background: rgba(255, 69, 58, 0.1);
+    border: 1px solid rgba(255, 69, 58, 0.3);
+    border-radius: var(--border-radius-sm);
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: #ff453a;
+    overflow-x: auto;
+}
+
+.error-block pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+}
+
 .inline-table {
     border: 1px solid var(--border-color);
     max-height: 180px;
@@ -608,7 +629,80 @@ textarea:focus {
     line-height: 1.6;
     font-size: 1rem;
     margin-bottom: 16px;
-    white-space: pre-wrap;
+    white-space: normal;
+}
+
+/* Markdown Rendering Styles */
+.response-body p, .bubble p {
+    margin-bottom: 12px;
+}
+.response-body p:last-child, .bubble p:last-child {
+    margin-bottom: 0;
+}
+.response-body ul, .bubble ul,
+.response-body ol, .bubble ol {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    padding-left: 24px;
+}
+.response-body ul {
+    list-style-type: disc;
+}
+.response-body ol {
+    list-style-type: decimal;
+}
+.response-body li, .bubble li {
+    margin-bottom: 6px;
+}
+.response-body h1, .bubble h1,
+.response-body h2, .bubble h2,
+.response-body h3, .bubble h3,
+.response-body h4, .bubble h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-family: var(--font-header);
+    font-weight: 600;
+}
+.response-body h1, .bubble h1 { font-size: 1.5rem; }
+.response-body h2, .bubble h2 { font-size: 1.3rem; }
+.response-body h3, .bubble h3 { font-size: 1.15rem; }
+.response-body h4, .bubble h4 { font-size: 1rem; }
+
+.response-body table, .bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+}
+.response-body th, .bubble th,
+.response-body td, .bubble td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+}
+.response-body th, .bubble th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+}
+.response-body tr:nth-child(even), .bubble tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.response-body code, .bubble code {
+    font-family: var(--font-mono);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.response-body pre code, .bubble pre code {
+    display: block;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
 }
 
 .card-footer {

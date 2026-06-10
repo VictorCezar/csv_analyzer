@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const hitlQuery = document.getElementById('hitl-query');
     const hitlExtracted = document.getElementById('hitl-extracted');
     const hitlResponse = document.getElementById('hitl-response');
+    const hitlErrorBlock = document.getElementById('hitl-error-block');
+    const hitlError = document.getElementById('hitl-error');
     
     const approveBtn = document.getElementById('approve-btn');
     const rejectBtn = document.getElementById('reject-btn');
@@ -76,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // File Upload Handler
     async function handleFileUpload(file) {
         if (!file.name.endsWith('.csv')) {
-            alert('Please upload a valid CSV file.');
+            alert('Por favor, carregue um arquivo CSV válido.');
             return;
         }
 
@@ -175,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         agentStatusCard.classList.add('hidden');
         hitlPanel.classList.add('hidden');
+        if (hitlErrorBlock) hitlErrorBlock.classList.add('hidden');
         finalResponseCard.classList.add('hidden');
         
         resetTimeline();
@@ -200,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             submitQueryBtn.disabled = true;
-            submitQueryBtn.textContent = 'Analyzing...';
+            submitQueryBtn.textContent = 'Analisando...';
             
             const response = await fetch('/api/query', {
                 method: 'POST',
@@ -225,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimelineStep('step-parse', 'error');
         } finally {
             submitQueryBtn.disabled = false;
-            submitQueryBtn.textContent = 'Analyze Data';
+            submitQueryBtn.textContent = 'Analisar Dados com IA';
         }
     });
 
@@ -233,15 +236,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleWorkflowResponse(result) {
         const state = result.state;
         
-        // Parse CSV node finished successfully if we get here
+        // Parse CSV
         updateTimelineStep('step-parse', 'completed');
 
         // Understand Node
         if (state.pandas_query) {
             updateTimelineStep('step-understand', 'completed');
-        } else if (state.error && !state.extracted_data) {
+        } else if (state.error) {
             updateTimelineStep('step-understand', 'error');
-            return;
         }
 
         // Extract Node
@@ -249,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimelineStep('step-extract', 'completed');
         } else if (state.error) {
             updateTimelineStep('step-extract', 'error');
-            return;
         }
 
         // Draft Response Node
@@ -257,24 +258,30 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimelineStep('step-draft', 'completed');
         } else if (state.error) {
             updateTimelineStep('step-draft', 'error');
-            return;
         }
 
         // Human Validation Node
         if (result.is_paused) {
             updateTimelineStep('step-validation', 'active');
             
-            // Show HITL card
-            hitlQuery.textContent = state.pandas_query;
-            hitlExtracted.textContent = state.extracted_data || 'Empty DataFrame';
-            hitlResponse.textContent = state.response;
+            // Show HITL card with code or errors
+            hitlQuery.textContent = state.pandas_query || '// Nenhuma query foi gerada';
+            hitlExtracted.textContent = state.extracted_data || 'Nenhum dado retornado.';
+            
+            if (state.error) {
+                hitlError.textContent = state.error;
+                hitlErrorBlock.classList.remove('hidden');
+                hitlResponse.innerHTML = renderMarkdown('Não foi possível gerar um rascunho de resposta porque ocorreu um erro na execução do código.');
+            } else {
+                hitlErrorBlock.classList.add('hidden');
+                hitlResponse.innerHTML = renderMarkdown(state.response || 'Nenhum rascunho de resposta gerado.');
+            }
             
             hitlPanel.classList.remove('hidden');
             hitlPanel.scrollIntoView({ behavior: 'smooth' });
         } else {
-            // No paused state, flow ended directly (Approved)
             updateTimelineStep('step-validation', 'completed');
-            showFinalResponse(state.response);
+            showFinalResponse(state.response || state.error);
         }
     }
 
@@ -363,20 +370,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Markdown parser helper using marked library
+    function renderMarkdown(text) {
+        if (!text) return '';
+        if (typeof marked !== 'undefined') {
+            return marked.parse(text);
+        }
+        // Fallback: simple newline replacement
+        return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
+    let lastResponseText = '';
+
     // Display Final Answer Card
     function showFinalResponse(responseText) {
-        finalResponseText.textContent = responseText;
+        lastResponseText = responseText;
+        finalResponseText.innerHTML = renderMarkdown(responseText);
         finalResponseCard.classList.remove('hidden');
         finalResponseCard.scrollIntoView({ behavior: 'smooth' });
     }
 
     // Copy Response text
     copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(finalResponseText.textContent)
+        const textToCopy = lastResponseText || finalResponseText.textContent;
+        navigator.clipboard.writeText(textToCopy)
             .then(() => {
-                copyBtn.textContent = 'Copied!';
+                copyBtn.textContent = 'Copiado!';
                 setTimeout(() => {
-                    copyBtn.textContent = 'Copy to clipboard';
+                    copyBtn.textContent = 'Copiar para área de transferência';
                 }, 2000);
             })
             .catch(err => {

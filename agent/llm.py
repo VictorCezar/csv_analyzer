@@ -1,36 +1,36 @@
 import os
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
+from langchain_huggingface import HuggingFaceEmbeddings
 
-def get_llm(temperature: float = 0.0) -> ChatOllama:
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
+
+def get_llm(temperature: float = 0.0) -> ChatGroq:
     """
-    Initialize and return the local ChatOllama LLM.
+    Inicializa e retorna o LLM Llama 3 rodando na nuvem ultrarrápida do Groq.
     
     Args:
-        temperature: The temperature parameter for the LLM.
+        temperature: O parâmetro de criatividade/aleatoriedade.
         
     Returns:
-        ChatOllama: The configured LangChain ChatOllama instance.
+        ChatGroq: Instância configurada do LangChain para o Groq.
     """
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    model = os.getenv("OLLAMA_MODEL", "llama3")
-    
-    return ChatOllama(
-        base_url=base_url,
-        model=model,
+    # A biblioteca ChatGroq automaticamente busca a variável GROQ_API_KEY do ambiente.
+    return ChatGroq(
+        model_name="llama-3.1-8b-instant",
         temperature=temperature,
     )
 
-def get_embeddings() -> OllamaEmbeddings:
+def get_embeddings() -> HuggingFaceEmbeddings:
     """
-    Initialize and return local OllamaEmbeddings.
+    Inicializa e retorna os embeddings locais do HuggingFace.
     
     Returns:
-        OllamaEmbeddings: The configured LangChain OllamaEmbeddings instance.
+        HuggingFaceEmbeddings: Instância configurada para vetorização local.
     """
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    model = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
-    
-    return OllamaEmbeddings(
-        base_url=base_url,
-        model=model,
+    # O modelo all-MiniLM-L6-v2 é padrão da indústria: extremamente leve, 
+    # roda rápido na CPU e não requer chave de API.
+    return HuggingFaceEmbeddings(
+        model_name="all-MiniLM-L6-v2"
     )

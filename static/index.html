@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI CSV Analyst - LangGraph & Ollama</title>
-    <!-- Google Fonts -->
+    <title>Analista de Dados IA - LangGraph</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -13,66 +12,59 @@
 <body>
     <div class="glow-bg"></div>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <div class="logo">
                 <span class="logo-icon">📊</span>
-                <h1>CSV Analyst <span class="badge">AI Agent</span></h1>
+                <h1>Analista de Dados <span class="badge">Agente IA</span></h1>
             </div>
-            <p class="subtitle">Modular local analysis powered by LangGraph, Pandas, and Ollama</p>
+            <p class="subtitle">Análise local inteligente usando LangGraph, Pandas e Ollama</p>
         </header>
 
-        <!-- Main Workspace -->
         <main class="workspace">
-            <!-- Left Panel: CSV Upload and Preview -->
-            <section class="panel left-panel">
+            <section class="panel">
                 <div class="card upload-card">
-                    <h2 class="card-title">1. Upload CSV Dataset</h2>
+                    <h2 class="card-title">1. Carregue seu Dataset (CSV)</h2>
                     <div id="drop-zone" class="drop-zone">
                         <svg class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
-                        <p class="drop-text">Drag and drop your CSV file here, or <span class="highlight">browse</span></p>
+                        <p class="drop-text">Arraste e solte seu arquivo CSV aqui, ou <span class="highlight">clique para procurar</span></p>
                         <input type="file" id="file-input" accept=".csv" class="file-input">
                     </div>
                     
-                    <!-- File Metadata -->
                     <div id="file-info" class="file-info hidden">
                         <div class="file-meta-header">
                             <span id="file-name" class="file-name">dataset.csv</span>
-                            <button id="change-file-btn" class="text-btn">Change</button>
+                            <button id="change-file-btn" class="text-btn">Trocar Arquivo</button>
                         </div>
                         <div class="stats-grid">
                             <div class="stat-box">
-                                <span class="stat-label">Rows</span>
+                                <span class="stat-label">Linhas</span>
                                 <span id="stat-rows" class="stat-value">-</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-label">Columns</span>
+                                <span class="stat-label">Colunas</span>
                                 <span id="stat-cols" class="stat-value">-</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CSV Preview -->
                 <div class="card preview-card">
-                    <h2 class="card-title">Dataset Preview</h2>
+                    <h2 class="card-title">Pré-visualização dos Dados</h2>
                     <div class="table-container" id="table-container">
-                        <p class="placeholder-text">Upload a CSV dataset to preview records here</p>
+                        <p class="placeholder-text">Faça o upload de um CSV para visualizar os registros</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Right Panel: Agent Controls & Interaction -->
-            <section class="panel right-panel">
-                <!-- Query Input Card -->
+            <section class="panel">
                 <div class="card query-card">
-                    <h2 class="card-title">2. Ask Questions</h2>
+                    <h2 class="card-title">2. Faça sua Pergunta</h2>
                     <form id="query-form" class="query-form disabled">
-                        <textarea id="query-input" placeholder="e.g., What is the average salary of employees in Engineering?" rows="3" disabled></textarea>
+                        <textarea id="query-input" placeholder="Ex: Qual é a média salarial dos funcionários da Engenharia?" rows="3" disabled></textarea>
                         <button type="submit" id="submit-query-btn" class="btn btn-primary" disabled>
-                            <span>Analyze Data</span>
+                            <span>Analisar Dados</span>
                             <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
@@ -80,73 +72,75 @@
                     </form>
                 </div>
 
-                <!-- Live Agent Status & Timeline -->
                 <div id="agent-status-card" class="card status-card hidden">
-                    <h2 class="card-title">Agent Workflow Execution</h2>
+                    <h2 class="card-title">Execução do Fluxo do Agente</h2>
                     <div class="timeline">
                         <div id="step-parse" class="timeline-step">
                             <div class="step-marker">1</div>
                             <div class="step-content">
-                                <h3 class="step-title">CSV Parsing</h3>
-                                <p class="step-desc">Loading dataset and analyzing columns metadata</p>
+                                <h3 class="step-title">Processamento do CSV</h3>
+                                <p class="step-desc">Lendo dados e extraindo esquema das colunas</p>
                             </div>
                         </div>
                         <div id="step-understand" class="timeline-step">
                             <div class="step-marker">2</div>
                             <div class="step-content">
-                                <h3 class="step-title">Query Translation</h3>
-                                <p class="step-desc">Generating safe Pandas logic via local LLM</p>
+                                <h3 class="step-title">Tradução da Pergunta</h3>
+                                <p class="step-desc">LLM gerando lógica em Pandas</p>
                             </div>
                         </div>
                         <div id="step-extract" class="timeline-step">
                             <div class="step-marker">3</div>
                             <div class="step-content">
-                                <h3 class="step-title">Data Extraction</h3>
-                                <p class="step-desc">Executing Python query and subsetting data</p>
+                                <h3 class="step-title">Extração dos Dados</h3>
+                                <p class="step-desc">Executando código Python no dataset</p>
                             </div>
                         </div>
                         <div id="step-draft" class="timeline-step">
                             <div class="step-marker">4</div>
                             <div class="step-content">
-                                <h3 class="step-title">Drafting Answer</h3>
-                                <p class="step-desc">Formulating natural language response from data</p>
+                                <h3 class="step-title">Geração de Resposta</h3>
+                                <p class="step-desc">Escrevendo resposta baseada nos dados</p>
                             </div>
                         </div>
                         <div id="step-validation" class="timeline-step">
                             <div class="step-marker">5</div>
                             <div class="step-content">
-                                <h3 class="step-title">Human Validation</h3>
-                                <p class="step-desc">Awaiting human-in-the-loop CLI approval</p>
+                                <h3 class="step-title">Validação Humana</h3>
+                                <p class="step-desc">Aguardando aprovação (Human-in-the-Loop)</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- HITL Validation Panel -->
                 <div id="hitl-panel" class="card hitl-card hidden">
                     <div class="hitl-header">
                         <span class="pulse-indicator"></span>
-                        <h2>Human-in-the-Loop Review</h2>
+                        <h2>Revisão Human-in-the-Loop</h2>
                     </div>
-                    <p class="hitl-hint">Review the extracted data and drafted response below. You can approve this or provide feedback to refine the agent's query.</p>
+                    <p class="hitl-hint">Revise o código gerado e a resposta elaborada pelo agente. Você pode aprovar ou fornecer um feedback para que ele corrija a extração.</p>
                     
                     <div class="hitl-details">
                         <div class="hitl-sub-block">
-                            <h4 class="block-title">Generated Pandas Query</h4>
+                            <h4 class="block-title">Código Pandas Gerado</h4>
                             <div class="code-block">
-                                <code id="hitl-query">df['salary'].mean()</code>
+                                <code id="hitl-query"></code>
                             </div>
                         </div>
-
+                        <div id="hitl-error-block" class="hitl-sub-block hidden">
+                            <h4 class="block-title" style="color: var(--accent-red);">Erro de Execução</h4>
+                            <div class="error-block">
+                                <pre id="hitl-error"></pre>
+                            </div>
+                        </div>
                         <div class="hitl-sub-block">
-                            <h4 class="block-title">Extracted Data Subset</h4>
+                            <h4 class="block-title">Dados Extraídos</h4>
                             <div id="hitl-extracted-container" class="table-container inline-table">
                                 <pre id="hitl-extracted"></pre>
                             </div>
                         </div>
-
                         <div class="hitl-sub-block">
-                            <h4 class="block-title">Draft Answer</h4>
+                            <h4 class="block-title">Rascunho da Resposta</h4>
                             <div class="bubble">
                                 <p id="hitl-response"></p>
                             </div>
@@ -154,42 +148,33 @@
                     </div>
 
                     <div class="hitl-actions">
-                        <button id="approve-btn" class="btn btn-success">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            Approve & Output
-                        </button>
-                        <button id="reject-btn" class="btn btn-danger">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            Reject & Refine
-                        </button>
+                        <button id="approve-btn" class="btn btn-success">Aprovar & Finalizar</button>
+                        <button id="reject-btn" class="btn btn-danger">Rejeitar & Refinar</button>
                     </div>
 
-                    <!-- Feedback Input (initially hidden) -->
                     <div id="feedback-container" class="feedback-container hidden">
-                        <label for="feedback-input">Feedback / Correction Instructions:</label>
-                        <textarea id="feedback-input" placeholder="Explain what needs to be changed (e.g., 'Filter employees older than 35 instead of 30')"></textarea>
+                        <label for="feedback-input">Instruções de Correção (Feedback):</label>
+                        <textarea id="feedback-input" placeholder="Ex: Filtre apenas os clientes do Brasil ao invés da Argentina."></textarea>
                         <div class="feedback-actions">
-                            <button id="submit-feedback-btn" class="btn btn-warning">Submit Feedback</button>
-                            <button id="cancel-feedback-btn" class="text-btn">Cancel</button>
+                            <button id="submit-feedback-btn" class="btn btn-warning">Enviar Correção</button>
+                            <button id="cancel-feedback-btn" class="text-btn">Cancelar</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Final Response Panel -->
                 <div id="final-response-card" class="card response-card hidden">
-                    <h2 class="card-title">Final Response</h2>
+                    <h2 class="card-title">Resposta Final</h2>
                     <div class="response-body">
                         <p id="final-response-text"></p>
                     </div>
                     <div class="card-footer">
-                        <button id="copy-btn" class="text-btn btn-copy">Copy to clipboard</button>
+                        <button id="copy-btn" class="text-btn btn-copy">Copiar para área de transferência</button>
                     </div>
                 </div>
             </section>
         </main>
     </div>
-
-    <!-- UI Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

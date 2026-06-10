@@ -17,9 +17,10 @@ def route_after_parse(state: AgentState) -> str:
     return "understand_query"
 
 def route_after_extract(state: AgentState) -> str:
-    """Route back to understand_query if execution failed, otherwise to draft_response."""
+    """Se o código rodar com sucesso, redige a resposta. 
+       Se o código falhar, manda direto para a tela de Validação Humana para exibir o erro."""
     if state.get("error"):
-        return "understand_query"
+        return "human_validation"
     return "draft_response"
 
 def route_after_validation(state: AgentState) -> str:
@@ -60,7 +61,8 @@ def create_graph():
         route_after_extract,
         {
             "understand_query": "understand_query",
-            "draft_response": "draft_response"
+            "draft_response": "draft_response",
+            "human_validation": "human_validation"  # <--- ADICIONE ESTA LINHA
         }
     )
     
